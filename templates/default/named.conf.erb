@@ -1,0 +1,76 @@
+// Generated using chef. any direct changes will be overridden
+//
+// named.conf
+//
+// Provided by Red Hat bind package to configure the ISC BIND named(8) DNS
+// server as a caching only nameserver (as a localhost DNS resolver only).
+//
+// See /usr/share/doc/bind*/sample/ for example named configuration files.
+//
+// See the BIND Administrator's Reference Manual (ARM) for details about the
+// configuration located in /usr/share/doc/bind-{version}/Bv9ARM.html
+
+options {
+	listen-on port 53 { 127.0.0.1; <%= node['ipaddress'] %>  };
+        <% if node[:bind9][:enable_ipv6] %>
+         listen-on-v6 { any; };
+        <% end %>
+        directory "<%= node[:bind9][:data_path] %>";
+        dump-file "<%= node[:bind9][:dump_file] %>";
+        statistics-file "<%= node[:bind9][:statistics_file] %>";
+        memstatistics-file "<%= node[:bind9][:memstatistics_file] %>";
+        <% if node[:bind9][:allow_query] %>
+        allow-query {
+          "<%= node[:bind9][:allow_query] %>";
+        };
+       <% end %>
+       <% if node[:bind9][:recursion] %>
+        recursion: yes
+       <% end %>
+	allow-recursion {
+      <%= node[:bind9][:allow_recursion] %>;
+       };
+     
+	allow-transfer {
+      "<%= node[:bind9][:allow_transfer] %>";
+    	};
+	
+	 <% if node[:bind9][:allow_update] %>
+      allow-update {
+      "<%= node[:bind9][:allow_update] %>";
+      };
+    <% end %>
+       <% if node[:bind9][:enable_forwarding] %>
+    forwarders {
+     <% node[:bind9][:forwarders].each do |forwarder| -%>
+      <%= forwarder %>;
+     <% end %>
+      };
+
+     <% end %>
+       dnssec-enable True;
+       dnssec-validation True;
+       dnssec-lookaside auto;
+
+     auth-nxdomain no; 
+	 pid-file "<%= node[:bind9][:pidfile] %>";
+	session-keyfile "<%= node[:bind9][:session] %>";
+
+       bindkeys-file "/etc/named.iscdlv.key";
+
+};
+
+logging {
+  channel default_log {
+    file "<%= node[:bind9][:log_file] %>" versions 5 size 128M;
+    print-time yes;
+    print-severity yes;
+    print-category yes;
+  };
+};
+
+include "/etc/bind/named.conf.local"
+include "/etc/named.root.key";
+include "/etc/named.rfc1912.zones";
+
+
